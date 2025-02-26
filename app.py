@@ -22,17 +22,21 @@ def chatgpt_response(user_message):
 @app.route("/callback", methods=["POST"])
 def callback():
     body = request.get_json()
-    events = body.get("events", [])
+    print("Received request:", body)  # ✅ デバッグ用のログ追加
 
+    if not body or "events" not in body:
+        return jsonify({"status": "error", "message": "Invalid request"}), 400  # ✅ バリデーション追加
+
+    events = body.get("events", [])
     for event in events:
-        if event["type"] == "message" and "text" in event["message"]:
+        if event.get("type") == "message" and "text" in event.get("message", {}):
             user_message = event["message"]["text"]
             reply_token = event["replyToken"]
 
             reply_text = chatgpt_response(user_message)
             reply(reply_token, reply_text)
 
-    return jsonify({"status": "ok"}), 200  # <-- ここで200を返す
+    return jsonify({"status": "ok"}), 200  # ✅ 正常時は 200 を返す
 
 def reply(reply_token, text):
     headers = {
@@ -43,7 +47,8 @@ def reply(reply_token, text):
         "replyToken": reply_token,
         "messages": [{"type": "text", "text": text}]
     }
-    requests.post(LINE_API_URL, headers=headers, json=data)
+    response = requests.post(LINE_API_URL, headers=headers, json=data)
+    print("LINE Reply Response:", response.status_code, response.text)  # ✅ デバッグ用のログ追加
 
 # ✅ ルートページ（"GET /"）の処理を先に記述
 @app.route("/", methods=["GET"])
