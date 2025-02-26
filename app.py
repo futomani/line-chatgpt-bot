@@ -32,7 +32,7 @@ def callback():
             reply_text = chatgpt_response(user_message)
             reply(reply_token, reply_text)
 
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "ok"}), 200  # <-- ここで200を返す
 
 def reply(reply_token, text):
     headers = {
