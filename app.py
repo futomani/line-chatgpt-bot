@@ -45,10 +45,11 @@ def reply(reply_token, text):
     }
     requests.post(LINE_API_URL, headers=headers, json=data)
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-
+# ✅ ルートページ（"GET /"）の処理を先に記述
 @app.route("/", methods=["GET"])
 def home():
     return "LINE Bot is running!", 200
 
+# ✅ Flaskアプリの起動処理は最後に記述
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
