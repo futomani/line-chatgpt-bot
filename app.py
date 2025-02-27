@@ -7,16 +7,18 @@ import base64
 
 app = Flask(__name__)
 
-# OpenAI APIキー
-OPENAI_API_KEY = "your_openai_api_key"
+import os  # ✅ 環境変数を扱うために `os` を追加
+
+# ✅ OpenAI APIキー（環境変数から取得）
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
 
 # LINE API設定
-LINE_ACCESS_TOKEN = "your_line_access_token"
+LINE_ACCESS_TOKEN = "KJ9codbhj7toFJDLDVBAs90DPIQZuJUiM9crWZs4UgwE26P71K/h0y5bVGwohhiMLdQlAPSsM5Suv3Fau8uZec8mvc5rShrPAfJ4kmNhZsiTAGg8iF38DHl8ZfO0sciRNE7ycSKgUX/R8HA/wWXAfwdB04t89/1O/w1cDnyilFU="
 LINE_API_URL = "https://api.line.me/v2/bot/message/reply"
 
 # LINEのチャネルシークレット（LINE Developersで確認可能）
-CHANNEL_SECRET = "your_channel_secret"
+CHANNEL_SECRET = "516d5da9462cef084e5f78cee183c9f2"
 
 def verify_signature(request):
     """ LINEの署名を検証 """
