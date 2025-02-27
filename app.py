@@ -77,3 +77,12 @@ def callback():
 def home():
     """ 確認用のルート """
     return "LINE Bot is running!", 200
+
+def chatgpt_response(user_message):
+    """ ChatGPT APIを使って返信を生成 """
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": user_message}],
+        temperature=0.7
+    )
+    return response.choices[0].message.content.strip()
