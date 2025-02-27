@@ -4,22 +4,22 @@ import requests
 import hashlib
 import hmac
 import base64
+import os
 
 app = Flask(__name__)
 
-import os  # ✅ 環境変数を扱うために `os` を追加
-
 # ✅ OpenAI APIキー（環境変数から取得）
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-openai.api_key = OPENAI_API_KEY
 
-# ✅ LINE API設定（環境変数から取得）
+# ✅ 新しい OpenAI クライアントを作成
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+# LINE API設定
 LINE_ACCESS_TOKEN = os.getenv("LINE_ACCESS_TOKEN")
 LINE_API_URL = "https://api.line.me/v2/bot/message/reply"
 
-# ✅ LINEのチャネルシークレット（環境変数から取得）
+# LINEのチャネルシークレット（環境変数から取得）
 CHANNEL_SECRET = os.getenv("CHANNEL_SECRET")
-
 
 def verify_signature(request):
     """ LINEの署名を検証 """
@@ -30,12 +30,13 @@ def verify_signature(request):
     return hmac.compare_digest(expected_signature, signature)
 
 def chatgpt_response(user_message):
-    """ ChatGPT APIを使って返信を生成 """
-    response = openai.ChatCompletion.create(
+    """ ✅ 最新の OpenAI API を使用 """
+    response = client.chat.completions.create(
         model="gpt-4",
-        messages=[{"role": "user", "content": user_message}]
+        messages=[{"role": "user", "content": user_message}],
+        temperature=0.7
     )
-    return response["choices"][0]["message"]["content"].strip()
+    return response.choices[0].message.content.strip()
 
 def reply(reply_token, text):
     """ LINE API を使って返信する """
@@ -48,19 +49,19 @@ def reply(reply_token, text):
         "messages": [{"type": "text", "text": text}]
     }
     response = requests.post(LINE_API_URL, headers=headers, json=data)
-    print("LINE Reply Response:", response.status_code, response.text)  # ✅ デバッグ用のログ追加
+    print("LINE Reply Response:", response.status_code, response.text)
 
 @app.route("/callback", methods=["POST"])
 def callback():
     """ LINEのWebhookを処理 """
     if not verify_signature(request):
-        return jsonify({"status": "error", "message": "Invalid signature"}), 403  # 🚨 署名エラー時は403を返す
+        return jsonify({"status": "error", "message": "Invalid signature"}), 403
 
     body = request.get_json()
-    print("Received request:", body)  # ✅ デバッグ用ログ追加
+    print("Received request:", body)
 
     if not body or "events" not in body:
-        return jsonify({"status": "ok"}), 200  # ✅ Webhookイベントなしでも200を返す
+        return jsonify({"status": "ok"}), 200
 
     events = body.get("events", [])
     for event in events:
@@ -68,8 +69,12 @@ def callback():
             user_message = event["message"]["text"]
             reply_token = event["replyToken"]
 
-            reply_text = chatgpt_response(user_message)
-            reply(reply_token, reply_text)
+            try:
+                reply_text = chatgpt_response(user_message)
+                reply(reply_token, reply_text)
+            except Exception as e:
+                print(f"Error: {e}")
+                reply(reply_token, "エラーが発生しました。")
 
     return jsonify({"status": "ok"}), 200
 
@@ -77,12 +82,3 @@ def callback():
 def home():
     """ 確認用のルート """
     return "LINE Bot is running!", 200
-
-def chatgpt_response(user_message):
-    """ ChatGPT APIを使って返信を生成 """
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": user_message}],
-        temperature=0.7
-    )
-    return response.choices[0].message.content.strip()
