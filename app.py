@@ -13,12 +13,13 @@ import os  # ✅ 環境変数を扱うために `os` を追加
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
 
-# LINE API設定
-LINE_ACCESS_TOKEN = "KJ9codbhj7toFJDLDVBAs90DPIQZuJUiM9crWZs4UgwE26P71K/h0y5bVGwohhiMLdQlAPSsM5Suv3Fau8uZec8mvc5rShrPAfJ4kmNhZsiTAGg8iF38DHl8ZfO0sciRNE7ycSKgUX/R8HA/wWXAfwdB04t89/1O/w1cDnyilFU="
+# ✅ LINE API設定（環境変数から取得）
+LINE_ACCESS_TOKEN = os.getenv("LINE_ACCESS_TOKEN")
 LINE_API_URL = "https://api.line.me/v2/bot/message/reply"
 
-# LINEのチャネルシークレット（LINE Developersで確認可能）
-CHANNEL_SECRET = "516d5da9462cef084e5f78cee183c9f2"
+# ✅ LINEのチャネルシークレット（環境変数から取得）
+CHANNEL_SECRET = os.getenv("CHANNEL_SECRET")
+
 
 def verify_signature(request):
     """ LINEの署名を検証 """
