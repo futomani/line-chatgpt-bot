@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 import openai
 import requests
 import hashlib
@@ -7,6 +7,9 @@ import base64
 import os
 
 app = Flask(__name__)
+
+# Simple in-memory todo list
+tasks = []
 
 # ✅ OpenAI APIキー（環境変数から取得）
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -82,3 +85,19 @@ def callback():
 def home():
     """ 確認用のルート """
     return "LINE Bot is running!", 200
+
+
+@app.route("/todo", methods=["GET"])
+def todo_page():
+    """Todo list page"""
+    return render_template("todo.html", tasks=tasks, error=None)
+
+
+@app.route("/add_todo", methods=["POST"])
+def add_todo():
+    """Handle adding a new todo item"""
+    task = request.form.get("task", "").strip()
+    if not task:
+        return render_template("todo.html", tasks=tasks, error="Task cannot be empty"), 400
+    tasks.append(task)
+    return redirect(url_for("todo_page"))
